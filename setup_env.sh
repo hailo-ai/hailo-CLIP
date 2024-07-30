@@ -6,7 +6,6 @@ CORE_REQUIRED_VERSION=("3.28.2" "3.29.1")
 
 # TAPPAS Definitions
 TAPPAS_VENV_NAME="hailo_tappas_venv"
-SUITE_VENV_NAME="hailo_virtualenv"
 TAPPAS_REQUIRED_VERSION=("3.28.0" "3.28.1" "3.28.2" "3.29.0" "3.29.1")
 
 # Function to check if the script is being sourced
@@ -35,7 +34,7 @@ if is_sourced; then
 	export TAPPAS_WORKSPACE
         echo "TAPPAS_WORKSPACE set to $TAPPAS_WORKSPACE"
 	if [[ "$TAPPAS_WORKSPACE" == "/local/workspace/tappas" ]]; then
-	    VENV_NAME=$SUITE_VENV_NAME
+	    VENV_NAME="DOCKER"
         else
             VENV_NAME=$TAPPAS_VENV_NAME
         fi
@@ -83,19 +82,23 @@ if is_sourced; then
         fi
         TAPPAS_POST_PROC_DIR=$(pkg-config --variable=tappas_postproc_lib_dir hailo-tappas-core)
     else
-        # Check if we are in the defined virtual environment
-        if [[ "$VIRTUAL_ENV" == *"$VENV_NAME"* ]]; then
-            echo "You are in the $VENV_NAME virtual environment."
+        if [[ "$VENV_NAME" == "DOCKER" ]]; then
+            echo "Running in DOCKER using default virtualenv"
         else
-            echo "You are not in the $VENV_NAME virtual environment."
-            # Activate TAPPAS virtual environment
-            VENV_PATH="${TAPPAS_WORKSPACE}/hailo_tappas_venv/bin/activate"
-            if [ -f "$VENV_PATH" ]; then
-                echo "Activating virtual environment..."
-                source "$VENV_PATH"
+            # Check if we are in the defined virtual environment
+            if [[ "$VIRTUAL_ENV" == *"$VENV_NAME"* ]]; then
+                echo "You are in the $VENV_NAME virtual environment."
             else
-                echo "Error: Virtual environment not found at $VENV_PATH."
-                return 1
+                echo "You are not in the $VENV_NAME virtual environment."
+                # Activate TAPPAS virtual environment
+                VENV_PATH="${TAPPAS_WORKSPACE}/hailo_tappas_venv/bin/activate"
+                if [ -f "$VENV_PATH" ]; then
+                    echo "Activating virtual environment..."
+                    source "$VENV_PATH"
+                else
+                    echo "Error: Virtual environment not found at $VENV_PATH."
+                    return 1
+                fi
             fi
         fi
         TAPPAS_POST_PROC_DIR="${TAPPAS_WORKSPACE}/apps/h8/gstreamer/libs/post_processes/"
