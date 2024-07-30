@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # TAPPAS CORE Definitions
-CORE_VENV_NAME="hailo_tappas_core_venv"
-CORE_REQUIRED_VERSION=("3.28.2")
+CORE_VENV_NAME="hailo_clip_venv"
+CORE_REQUIRED_VERSION=("3.28.2" "3.29.1")
 
 # TAPPAS Definitions
 TAPPAS_VENV_NAME="hailo_tappas_venv"
-TAPPAS_REQUIRED_VERSION=("3.28.0" "3.28.1" "3.28.2")
+SUITE_VENV_NAME="hailo_virtualenv"
+TAPPAS_REQUIRED_VERSION=("3.28.0" "3.28.1" "3.28.2" "3.29.0" "3.29.1")
 
 # Function to check if the script is being sourced
 is_sourced() {
@@ -27,13 +28,17 @@ if is_sourced; then
     # Check if we are working with hailo_tappas or hailo-tappas-core
     if pkg-config --exists hailo_tappas; then
         TAPPAS_CORE=0
-        VENV_NAME=$TAPPAS_VENV_NAME
         REQUIRED_VERSION=("${TAPPAS_REQUIRED_VERSION[@]}")
         echo "Setting up the environment for hailo_tappas..."
         TAPPAS_VERSION=$(pkg-config --modversion hailo_tappas)
         TAPPAS_WORKSPACE=$(pkg-config --variable=tappas_workspace hailo_tappas)
-        export TAPPAS_WORKSPACE
+	export TAPPAS_WORKSPACE
         echo "TAPPAS_WORKSPACE set to $TAPPAS_WORKSPACE"
+	if [[ "$TAPPAS_WORKSPACE" == "/local/workspace/tappas" ]]; then
+	    VENV_NAME=$SUITE_VENV_NAME
+        else
+            VENV_NAME=$TAPPAS_VENV_NAME
+        fi
     else
         TAPPAS_CORE=1
         VENV_NAME=$CORE_VENV_NAME
