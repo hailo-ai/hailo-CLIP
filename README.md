@@ -4,7 +4,11 @@ This is an example application to run a CLIP inference on a video in real-time. 
 
 ## Prerequisites
 
-This example has been tested with Hailo's TAPPAS v3.28.0 and TAPPAS-CORE v3.28.2 (RPi version). Please ensure that you have one of these versions installed on your system.
+This example has been tested with the following Hailo TAPPAS versions:
+- TAPPAS v3.28.0, v3.29.0, v3.29.1 
+- TAPPAS-CORE v3.28.2, v3.29.1 
+Please ensure that one of these versions is installed on your system.
+This application is compatible with x86 and RPi5 (8GB) systems.
 
 #### Required Packages for CLIP
 
