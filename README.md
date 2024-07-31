@@ -59,12 +59,31 @@ clip_app --input demo
 ```
 On the first run, CLIP will download the required models. This will happen only once.
 
-The code can also be run directly using `python` like this:
+#### Known Issue with Setuptools
+When running with TAPPAS docker, you might encounter this error:
+
+```plaintext
+ImportError: cannot import name 'packaging' from 'pkg_resources'
+```
+
+This is a known issue with setuptools version 70.0.0 and above. To fix it, either downgrade setuptools to version 69.5.1:
+
+```bash
+pip install setuptools==69.5.1
+```
+
+Or upgrade setuptools to the latest version:
+
+```bash
+pip install --upgrade setuptools
+```
+
+### Running Directly from Python
+The code can also be run directly using `python`:
 
 ```bash
 python3 -m clip_app.clip_app
 ```
-
 ### Arguments
 
 ```bash
