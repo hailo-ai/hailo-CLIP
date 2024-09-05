@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <cmath>
+
 #include "clip_croppers.hpp"
 
 #define PERSON_LABEL "person"
@@ -31,7 +32,10 @@ HailoUniqueIDPtr get_tracking_id(HailoDetectionPtr detection)
     }
     return nullptr;
 }
+
 std::map<int, int> track_counter;
+std::deque<int> order;
+long unsigned int max_tracked_objects = 100;
 
 /**
 * @brief Returns a boolean indicating if tracker update is required for a given detection.
@@ -57,7 +61,15 @@ bool track_update(HailoDetectionPtr detection, bool use_track_update, int TRACK_
         if (counter == track_counter.end())
         {
             // Emplace new element to the track_counter map. track update required.
+            if (track_counter.size() >= max_tracked_objects)
+            {
+                // Remove the oldest entry
+                int oldest_id = order.front();
+                order.pop_front();
+                track_counter.erase(oldest_id);
+            }
             track_counter.emplace(tracking_id, 0);
+            order.push_back(tracking_id);
             return true;
         }
         else if (counter->second >= TRACK_UPDATE)
@@ -71,7 +83,6 @@ bool track_update(HailoDetectionPtr detection, bool use_track_update, int TRACK_
             // Counter is still below TRACK_UPDATE_LIMIT - increasing the existing value. track update should be skipped. 
             track_counter[tracking_id] += 1;
         }
-
         return false;
     }
     // Use track update is false - track update required.

@@ -11,7 +11,7 @@ TAPPAS_REQUIRED_VERSION=("3.28.0" "3.28.1" "3.28.2" "3.29.0" "3.29.1")
 # Function to check if the script is being sourced
 is_sourced() {
     if [ -n "$ZSH_VERSION" ]; then
-        [[ "${(%):-%N}" != "$0" ]]
+        [[ -o sourced ]]
     elif [ -n "$BASH_VERSION" ]; then
         [[ "${BASH_SOURCE[0]}" != "$0" ]]
     else
