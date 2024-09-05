@@ -2,11 +2,15 @@
 
 This is an example application to run a CLIP inference on a video in real-time. The image embeddings are accelerated by the Hailo-8/8L AI processor, while the text embeddings run on the host. Text embeddings are sparse and should be calculated only once per text. If they do not need to be updated in real-time, they can be saved to a JSON file and loaded on the next run. By default, the app starts without enabling online text embeddings, which speeds up load time and saves memory.
 
+Click the image below to watch the demo on YouTube.
+
+[![Watch the demo on YouTube](https://img.youtube.com/vi/xJXMGu7EK60/0.jpg)](https://youtu.be/xJXMGu7EK60)
+
 ## Prerequisites
 
 This example has been tested with the following Hailo TAPPAS versions:
-- TAPPAS v3.28.0, v3.29.0, v3.29.1 
-- TAPPAS-CORE v3.28.2, v3.29.1 
+- TAPPAS v3.28.0, v3.29.0, v3.29.1
+- TAPPAS-CORE v3.28.2, v3.29.1
 Please ensure that one of these versions is installed on your system.
 This application is compatible with x86 and RPi5 (8GB) systems.
 
@@ -158,8 +162,8 @@ clip_app --input /dev/video0
 
 ## Integrating Your Code
 
-You can integrate your code in the `user_callback.py` file. This file includes a user-defined `app_callback` function that is called after the CLIP inference and before the display. You can use it to add your logic to the app. The `app_callback_class` will be passed to the callback function and can be used to access the app's data. 
-To enable executing the callback function, use the `--enable-callback` flag. 
+You can integrate your code in the `user_callback.py` file. This file includes a user-defined `app_callback` function that is called after the CLIP inference and before the display. You can use it to add your logic to the app. The `app_callback_class` will be passed to the callback function and can be used to access the app's data.
+To enable executing the callback function, use the `--enable-callback` flag.
 By default, the application will use `clip_app/user_callback.py` as the callback file. You can change it using the `--callback-path` flag. When setting a custom callback file, the callback will be enabled automatically.
 
 ### Online Text Embeddings
