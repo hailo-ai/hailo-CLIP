@@ -4,7 +4,7 @@ This is an example application to run a CLIP inference on a video in real-time. 
 
 Click the image below to watch the demo on YouTube.
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/xJXMGu7EK60/0.jpg)](https://youtu.be/xJXMGu7EK60)
+[![Watch the demo on YouTube](https://img.youtube.com/vi/XXizBHtCLew/0.jpg)](https://youtu.be/XXizBHtCLew)
 
 ## Prerequisites
 
