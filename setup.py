@@ -26,7 +26,7 @@ def read_requirements():
         if line.startswith("git+https://"):
             # Choose a name that matches or approximates the actual package
             # e.g., "hailo-apps-infra1" if that’s how you want to import it
-            package_name = "hailo-apps-infra1"
+            package_name = "hailo-apps-infra"
             pep_508_line = f"{package_name} @ {line}"
             new_lines.append(pep_508_line)
         else:
