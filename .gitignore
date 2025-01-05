@@ -1,0 +1,27 @@
+# Byte-compiled files
+__pycache__/
+clip_app/__pycache__/
+*.pyc
+*.pyo
+
+# Resources
+resources/*.so
+resources/*.hef
+resources/*.mp4
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Packages and dependencies
+*.egg-info/
+hailo_clip_venv/
+
+# Build, cache, and coverage files
+build/
+build.release/
+dist/
+*.egg
+*.egg-info/
+.cache/
+coverage/
