@@ -132,12 +132,6 @@ class AppWindow(Gtk.Window):
         bus.add_signal_watch()
         bus.connect("message", self.on_message)
 
-        # get xvimagesink element and disable qos
-        # xvimagesink is instantiated by fpsdisplaysink
-        hailo_display = self.pipeline.get_by_name("hailo_display")
-        xvimagesink = hailo_display.get_by_name("xvimagesink0")
-        xvimagesink.set_property("qos", False)
-
         # get text_image_matcher instance
         self.text_image_matcher = text_image_matcher
         self.text_image_matcher.set_threshold(self.options_menu.detection_threshold)

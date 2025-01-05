@@ -1,12 +1,10 @@
 import os
 import re
+
+# Pipeline parameters
+video_width = 1280
+video_height = 720
 batch_size = 8
-video_sink = "xvimagesink"
-# Note: only 16:9 resolutions are supported
-# RES_X = 1920
-# RES_Y = 1080
-RES_X = 1280
-RES_Y = 720
 
 # Check Hailo Device Type from the environment variable DEVICE_ARCHITECTURE
 # If the environment variable is not set, default to HAILO8L
@@ -60,8 +58,8 @@ def get_pipeline(self):
 
     source_pipeline = SOURCE_PIPELINE(
         video_source=self.input,
-        video_width=RES_X,
-        video_height=RES_Y,
+        video_width=video_width,
+        video_height=video_height,
         video_format='RGB',
         name='source'
     )
@@ -123,7 +121,7 @@ def get_pipeline(self):
     # TBD aggregator does not support ROI classification
     # clip_pipeline_wrapper = INFERENCE_PIPELINE_WRAPPER(clip_pipeline, name='clip')
 
-    display_pipeline = DISPLAY_PIPELINE(video_sink=video_sink, sync=self.sync, show_fps=self.show_fps)
+    display_pipeline = DISPLAY_PIPELINE(sync=self.sync, show_fps=self.show_fps)
 
     # Text to image matcher
     CLIP_PYTHON_MATCHER = f'hailopython name=pyproc module={hailopython_path} qos=false '
