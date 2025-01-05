@@ -6,6 +6,7 @@ import signal
 import importlib.util
 from functools import partial
 import gi
+import threading
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gst', '1.0')
 from gi.repository import Gtk, Gst, GLib
@@ -13,6 +14,7 @@ from clip_app.logger_setup import setup_logger, set_log_level
 from clip_app.clip_pipeline import get_pipeline
 from clip_app.text_image_matcher import text_image_matcher
 from clip_app import gui
+from hailo_apps_infra.gstreamer_app import picamera_thread
 
 # add logging
 logger = setup_logger()
@@ -117,6 +119,9 @@ class AppWindow(Gtk.Window):
         # get current path
         Gst.init(None)
         self.pipeline = self.create_pipeline()
+        if self.input_uri == "rpi":
+            picam_thread = threading.Thread(target=picamera_thread, args=(self.pipeline, 1280, 720, 'RGB'))
+            picam_thread.start()
         bus = self.pipeline.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self.on_message)
