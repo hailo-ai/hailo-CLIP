@@ -59,7 +59,7 @@ def get_pipeline(self):
     clip_matcher_config = os.path.join(self.current_path, "embeddings.json")
 
     source_pipeline = SOURCE_PIPELINE(
-        video_source=self.input_uri,
+        video_source=self.input,
         video_width=RES_X,
         video_height=RES_Y,
         video_format='RGB',
@@ -123,7 +123,7 @@ def get_pipeline(self):
     # TBD aggregator does not support ROI classification
     # clip_pipeline_wrapper = INFERENCE_PIPELINE_WRAPPER(clip_pipeline, name='clip')
 
-    display_pipeline = DISPLAY_PIPELINE(video_sink=video_sink, sync=self.sync_req, show_fps=self.show_fps)
+    display_pipeline = DISPLAY_PIPELINE(video_sink=video_sink, sync=self.sync, show_fps=self.show_fps)
 
     # Text to image matcher
     CLIP_PYTHON_MATCHER = f'hailopython name=pyproc module={hailopython_path} qos=false '

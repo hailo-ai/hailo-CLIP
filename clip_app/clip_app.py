@@ -15,6 +15,7 @@ from clip_app.clip_pipeline import get_pipeline
 from clip_app.text_image_matcher import text_image_matcher
 from clip_app import gui
 from hailo_apps_infra.gstreamer_app import picamera_thread
+from hailo_apps_infra.gstreamer_helper_pipelines import get_source_type
 
 # add logging
 logger = setup_logger()
@@ -55,10 +56,10 @@ def main():
     custom_callback_module = load_custom_callback(args.callback_path)
     app_callback = custom_callback_module.app_callback
     app_callback_class = custom_callback_module.app_callback_class
-    
+
     logger = setup_logger()
     set_log_level(logger, logging.INFO)
-    
+
     user_data = app_callback_class()
     win = AppWindow(args, user_data, app_callback)
     win.connect("destroy", on_destroy)
@@ -85,7 +86,7 @@ class AppWindow(Gtk.Window):
 
     # Add the get_pipeline function to the AppWindow class
     get_pipeline = get_pipeline
-    
+
 
     def __init__(self, args, user_data, app_callback):
         Gtk.Window.__init__(self, title="Clip App")
@@ -103,23 +104,28 @@ class AppWindow(Gtk.Window):
             logger.error("TAPPAS_POST_PROC_DIR environment variable is not set. Please set it by sourcing setup_env.sh")
             sys.exit(1)
 
-        self.dump_dot = args.dump_dot
-        self.sync_req = 'false' if args.disable_sync else 'true'
-        self.show_fps = args.show_fps
-        self.enable_callback = args.enable_callback or args.callback_path is not None
-        self.json_file = os.path.join(self.current_path, "embeddings.json") if args.json_path is None else args.json_path
-        if args.input == "demo":
-            self.input_uri = os.path.join(self.current_path, "resources", "clip_example.mp4")
-            self.json_file = os.path.join(self.current_path, "example_embeddings.json") if args.json_path is None else args.json_path
+        # Create options menu
+        self.options_menu = args
+
+        self.dump_dot = self.options_menu.dump_dot
+        self.video_source = self.options_menu.input
+        self.source_type = get_source_type(self.video_source)
+        self.sync = "false" if (self.options_menu.disable_sync or self.source_type != "file") else "true"
+        self.show_fps = self.options_menu.show_fps
+        self.enable_callback = self.options_menu.enable_callback or self.options_menu.callback_path is not None
+        self.json_file = os.path.join(self.current_path, "embeddings.json") if self.options_menu.json_path is None else self.options_menu.json_path
+        if self.options_menu.input == "demo":
+            self.input = os.path.join(self.current_path, "resources", "clip_example.mp4")
+            self.json_file = os.path.join(self.current_path, "example_embeddings.json") if self.options_menu.json_path is None else self.options_menu.json_path
         else:
-            self.input_uri = args.input
-        self.detector = args.detector
+            self.input = self.options_menu.input
+        self.detector = self.options_menu.detector
         self.user_data = user_data
         self.app_callback = app_callback
         # get current path
         Gst.init(None)
         self.pipeline = self.create_pipeline()
-        if self.input_uri == "rpi":
+        if self.input == "rpi":
             picam_thread = threading.Thread(target=picamera_thread, args=(self.pipeline, 1280, 720, 'RGB'))
             picam_thread.start()
         bus = self.pipeline.get_bus()
@@ -134,13 +140,13 @@ class AppWindow(Gtk.Window):
 
         # get text_image_matcher instance
         self.text_image_matcher = text_image_matcher
-        self.text_image_matcher.set_threshold(args.detection_threshold)
+        self.text_image_matcher.set_threshold(self.options_menu.detection_threshold)
 
         # build UI
-        self.build_ui(args)
+        self.build_ui(self.options_menu)
 
         # set runtime
-        if args.disable_runtime_prompts:
+        if self.options_menu.disable_runtime_prompts:
             logger.info("No text embedding runtime selected, adding new text is disabled. Loading %s", self.json_file)
             self.disable_text_boxes()
             self.on_load_button_clicked(None)
