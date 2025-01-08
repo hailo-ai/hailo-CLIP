@@ -75,11 +75,11 @@ get-usb-camera
 
 Once you identify your camera device, you can run the application as follows:
 ```bash
-python clip_application --input /dev/video0
+python clip_application.py --input /dev/video0
 ```
 #### rpi Camera
 ```bash
-python clip_application --input rpi
+python clip_application.py --input rpi
 ```
 
 ### UI Controls
