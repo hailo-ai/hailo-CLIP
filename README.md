@@ -11,8 +11,8 @@ Click the image below to watch the demo on YouTube.
 This application is compatible with x86 and RPi5 (8GB) systems.
 
 This example has been tested with the following Hailo TAPPAS versions:
-- TAPPAS v3.29.0, v3.29.1, v3.30.0
-- TAPPAS-CORE v3.29.1, v3.30.0
+- v3.30.0
+- v3.31.0
 Please ensure that one of these versions is installed on your system.
 
 - **`hailo-tappas-core`**: TAPPAS core installation using a `.deb` file or `apt install` (Raspberry Pi platforms).
