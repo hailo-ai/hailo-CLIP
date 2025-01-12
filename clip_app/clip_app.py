@@ -22,50 +22,40 @@ logger = setup_logger()
 set_log_level(logger, logging.INFO)
 
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Hailo online CLIP app")
-    parser.add_argument("--input", "-i", type=str, default="/dev/video0", help="URI of the input stream. Default is /dev/video0. Use '--input demo' to use the demo video.")
-    parser.add_argument("--detector", "-d", type=str, choices=["person", "face", "none"], default="none", help="Which detection pipeline to use.")
-    parser.add_argument("--json-path", type=str, default=None, help="Path to JSON file to load and save embeddings. If not set, embeddings.json will be used.")
-    parser.add_argument("--disable-sync", action="store_true",help="Disables display sink sync, will run as fast as possible. Relevant when using file source.")
-    parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file.")
-    parser.add_argument("--detection-threshold", type=float, default=0.5, help="Detection threshold.")
-    parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink.")
-    parser.add_argument("--enable-callback", action="store_true", help="Enables the use of the callback function.")
-    parser.add_argument("--callback-path", type=str, default=None, help="Path to the custom user callback file.")
-    parser.add_argument("--disable-runtime-prompts", action="store_true", help="When set, app will not support runtime prompts. Default is False.")
+class ClipApp():
+    def __init__(self, user_data, app_callback):
+        self.args = self.parse_arguments().parse_args()
+        
+        self.app_callback = app_callback
+        set_log_level(logger, logging.INFO)
 
-    return parser.parse_args()
+        self.user_data = user_data
+        self.win = AppWindow(self.args, self.user_data, self.app_callback)
+    def run(self):
+        self.win.connect("destroy", self.on_destroy)
+        self.win.show_all()
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        Gtk.main()
+        
+    def on_destroy(self, window):
+        logger.info("Destroying window...")
+        window.quit_button_clicked(None)
+        
+    def parse_arguments(self):
+        parser = argparse.ArgumentParser(description="Hailo online CLIP app")
+        parser.add_argument("--input", "-i", type=str, default="/dev/video0", help="Input source. Can be a file, USB (webcam), RPi camera (CSI camera module). \
+        For RPi camera use '-i rpi' \
+        For demo video use '--input demo'. \
+        Default is /dev/video0.")
+        parser.add_argument("--detector", "-d", type=str, choices=["person", "face", "none"], default="none", help="Which detection pipeline to use.")
+        parser.add_argument("--json-path", type=str, default=None, help="Path to JSON file to load and save embeddings. If not set, embeddings.json will be used.")
+        parser.add_argument("--disable-sync", action="store_true",help="Disables display sink sync, will run as fast as possible. Relevant when using file source.")
+        parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file.")
+        parser.add_argument("--detection-threshold", type=float, default=0.5, help="Detection threshold.")
+        parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink.")
+        parser.add_argument("--disable-runtime-prompts", action="store_true", help="When set, app will not support runtime prompts. Default is False.")
 
-def load_custom_callback(callback_path=None):
-    if callback_path:
-        spec = importlib.util.spec_from_file_location("custom_callback", callback_path)
-        custom_callback = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(custom_callback)
-    else:
-        import clip_app.user_callback as custom_callback
-    return custom_callback
-
-def on_destroy(window):
-    logger.info("Destroying window...")
-    window.quit_button_clicked(None)
-
-
-def main():
-    args = parse_arguments()
-    custom_callback_module = load_custom_callback(args.callback_path)
-    app_callback = custom_callback_module.app_callback
-    app_callback_class = custom_callback_module.app_callback_class
-
-    logger = setup_logger()
-    set_log_level(logger, logging.INFO)
-
-    user_data = app_callback_class()
-    win = AppWindow(args, user_data, app_callback)
-    win.connect("destroy", on_destroy)
-    win.show_all()
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    Gtk.main()
+        return parser
 
 class AppWindow(Gtk.Window):
     # Add GUI functions to the AppWindow class
@@ -112,7 +102,6 @@ class AppWindow(Gtk.Window):
         self.source_type = get_source_type(self.video_source)
         self.sync = "false" if (self.options_menu.disable_sync or self.source_type != "file") else "true"
         self.show_fps = self.options_menu.show_fps
-        self.enable_callback = self.options_menu.enable_callback or self.options_menu.callback_path is not None
         self.json_file = os.path.join(self.current_path, "embeddings.json") if self.options_menu.json_path is None else self.options_menu.json_path
         if self.options_menu.input == "demo":
             self.input = os.path.join(self.current_path, "resources", "clip_example.mp4")
@@ -137,6 +126,7 @@ class AppWindow(Gtk.Window):
         self.text_image_matcher.set_threshold(self.options_menu.detection_threshold)
 
         # build UI
+        self.max_entries = 6
         self.build_ui(self.options_menu)
 
         # set runtime
@@ -151,14 +141,13 @@ class AppWindow(Gtk.Window):
             logger.info("Using %s for text embedding", self.text_image_matcher.model_runtime)
             self.on_load_button_clicked(None)
 
-        # Connect pad probe to the identity element
-        if self.enable_callback:
-            identity = self.pipeline.get_by_name("identity_callback")
-            if identity is None:
-                logger.warning("identity_callback element not found, add <identity name=identity_callback> in your pipeline where you want the callback to be called.")
-            else:
-                identity_pad = identity.get_static_pad("src")
-                identity_pad.add_probe(Gst.PadProbeType.BUFFER, partial(self.app_callback, self), self.user_data)
+
+        identity = self.pipeline.get_by_name("identity_callback")
+        if identity is None:
+            logger.warning("identity_callback element not found, add <identity name=identity_callback> in your pipeline where you want the callback to be called.")
+        else:
+            identity_pad = identity.get_static_pad("src")
+            identity_pad.add_probe(Gst.PadProbeType.BUFFER, partial(self.app_callback, self), self.user_data)
         # start the pipeline
         self.pipeline.set_state(Gst.State.PLAYING)
 
@@ -230,4 +219,4 @@ class AppWindow(Gtk.Window):
         return pipeline
 
 if __name__ == "__main__":
-    main()
+    run()

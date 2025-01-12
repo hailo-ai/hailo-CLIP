@@ -82,6 +82,7 @@ class TextImageMatcher:
         self.run_softmax = True
         self.device = "cpu"
 
+        self.max_entries = max_entries
         self.entries = [TextEmbeddingEntry() for _ in range(max_entries)]
         self.user_data = None  # user data can be used to store additional information
         self.text_prefix = "A photo of a "
@@ -118,7 +119,9 @@ class TextImageMatcher:
                 if entry.text == "":
                     self.entries[i] = new_entry
                     return
-            logger.error("Entry list is full.")
+            if len(self.entries) == self.max_entries:
+                logger.info(f"Entry list has more then {self.max_entries} entries, The gui will not show the prompts.")
+            self.entries.append(new_entry)
         elif 0 <= index < len(self.entries):
             self.entries[index] = new_entry
         else:
@@ -253,6 +256,7 @@ def main():
     parser.add_argument("--interactive", action="store_true", help="input text from interactive shell")
     parser.add_argument("--image-path", type=str, default=None, help="Optional, path to image file to match. Note image embeddings are not running on Hailo here.")
     parser.add_argument('--texts-list', nargs='+', help='A list of texts to add to the matcher, the first one will be the searched text, the others will be considered negative prompts.\n Example: --texts-list "cat" "dog" "yellow car"')
+    parser.add_argument('--texts-json', type=str, help='A json of texts to add to the matcher, the json will include 2 keys negative and positive, the values are going to be lists of texts\n Example: --texts-json resources/texts_json_example.json')
     args = parser.parse_args()
 
     matcher = TextImageMatcher()
@@ -264,21 +268,35 @@ def main():
             if text == "":
                 break
             texts.append(text)
+    elif args.texts_list:
+        texts = args.texts_list
+    elif args.texts_json:
+        with open(args.texts_json, 'r') as file:
+            data = json.load(file)
+            texts_positive =  data['positive']
+            texts_negative = data['negative']
     else:
-        texts = args.texts_list if args.texts_list is not None else ["birthday cake", "person", "landscape"]
-
+        texts = ["birthday cake", "person", "landscape"]
+    
+    if not args.texts_json:
+        texts_positive = [texts[0]]
+        texts_negative = texts[1:]
+        
     logger.info("Adding text embeddings: ")
-    first = True
-    for text in texts:
-        status = "positive" if first else "negative"
-        logger.info('%s%s (%s)', matcher.text_prefix, text, status)
-        first = False
+
+    for text in texts_positive:
+        logger.info('%s%s (%s)', matcher.text_prefix, text, "positive")
+    for text in texts_negative:
+        logger.info('%s%s (%s)', matcher.text_prefix, text, "negative")
+
 
     start_time = time.time()
-    first = True
-    for text in texts:
-        matcher.add_text(text, negative=not first)
-        first = False
+
+    for text in texts_positive:
+        matcher.add_text(text, negative=False)
+    for text in texts_negative:
+        matcher.add_text(text, negative=True)
+
     end_time = time.time()
     logger.info("Time taken to add %s text embeddings using add_text(): %.4f seconds", len(texts), end_time - start_time)
 

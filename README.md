@@ -1,6 +1,6 @@
 # CLIP Zero Shot Inference Application
 
-This is an example application to run a CLIP inference on a video in real-time. The image embeddings are accelerated by the Hailo-8/8L AI processor, while the text embeddings run on the host. Text embeddings are sparse and should be calculated only once per text. If they do not need to be updated in real-time, they can be saved to a JSON file and loaded on the next run. By default, the app starts without enabling online text embeddings, which speeds up load time and saves memory.
+This is an example application to run a CLIP inference on a video in real-time. The image embeddings are accelerated by the Hailo-8/8L AI processor, while the text embeddings run on the host. Text embeddings are sparse and should be calculated only once per text. If they do not need to be updated in real-time, they can be saved to a JSON file and loaded on the next run.
 
 Click the image below to watch the demo on YouTube.
 
@@ -13,6 +13,7 @@ This application is compatible with x86 and RPi5 (8GB) systems.
 This example has been tested with the following Hailo TAPPAS versions:
 - v3.30.0
 - v3.31.0
+
 Please ensure that one of these versions is installed on your system.
 
 - **`hailo-tappas-core`**: TAPPAS core installation using a `.deb` file or `apt install` (Raspberry Pi platforms).
@@ -41,50 +42,20 @@ source setup_env.sh
 Run the example:
 
 ```bash
-clip_app --input demo
+python clip_application.py --input demo
 ```
 On the first run, CLIP will download the required models. This will happen only once.
 
 
-### Running Directly from Python
-The code can also be run directly using `python`:
-
-```bash
-python3 -m clip_app.clip_app
-```
-
 ## User Guide
 Watch the Hailo CLIP Zero Shot Classification Tutorial
+
 [![Tutorial: Hailo CLIP Zero Shot Classification Application](https://img.youtube.com/vi/xhXOxgEE6K4/0.jpg)](https://youtu.be/xhXOxgEE6K4)
 
 ### Arguments
 
 ```bash
-clip_app -h
-usage: clip_app [-h] [--input INPUT] [--detector {person,face,none}] [--json-path JSON_PATH] [--disable-sync] [--dump-dot]
-                [--detection-threshold DETECTION_THRESHOLD] [--show-fps] [--enable-callback] [--callback-path CALLBACK_PATH]
-                [--disable-runtime-prompts]
-
-Hailo online CLIP app
-
-options:
-  -h, --help            show this help message and exit
-  --input INPUT, -i INPUT
-                        URI of the input stream. Default is /dev/video0. Use '--input demo' to use the demo video.
-  --detector {person,face,none}, -d {person,face,none}
-                        Which detection pipeline to use.
-  --json-path JSON_PATH
-                        Path to JSON file to load and save embeddings. If not set, embeddings.json will be used.
-  --disable-sync        Disables display sink sync, will run as fast as possible. Relevant when using file source.
-  --dump-dot            Dump the pipeline graph to a dot file.
-  --detection-threshold DETECTION_THRESHOLD
-                        Detection threshold.
-  --show-fps, -f        Print FPS on sink.
-  --enable-callback     Enables the use of the callback function.
-  --callback-path CALLBACK_PATH
-                        Path to the custom user callback file.
-  --disable-runtime-prompts
-                        When set, app will not support runtime prompts. Default is False.
+python clip_application.py -h
 ```
 
 ### Modes
@@ -94,6 +65,8 @@ options:
 - **Face mode (`--detector face`)**: Runs CLIP inference on detected faces. This mode may not perform as well as person mode due to cropped faces being less represented in the dataset. Experiment to see if it fits your application.
 
 ### Using a Webcam as Input
+
+#### USB Camera
 Before running the application, ensure a camera is connected to your device. Use the `--input` flag to specify the camera device, defaulting to `/dev/video0`.
 You can check which USB webcam device is connected by running the following command:
 ```bash
@@ -102,7 +75,11 @@ get-usb-camera
 
 Once you identify your camera device, you can run the application as follows:
 ```bash
-clip_app --input /dev/video0
+python clip_application --input /dev/video0
+```
+#### rpi Camera
+```bash
+python clip_application --input rpi
 ```
 
 ### UI Controls
@@ -130,9 +107,7 @@ clip_app --input /dev/video0
 
 ## Integrating Your Code
 
-You can integrate your code in the `user_callback.py` file. This file includes a user-defined `app_callback` function that is called after the CLIP inference and before the display. You can use it to add your logic to the app. The `app_callback_class` will be passed to the callback function and can be used to access the app's data.
-To enable executing the callback function, use the `--enable-callback` flag.
-By default, the application will use `clip_app/user_callback.py` as the callback file. You can change it using the `--callback-path` flag. When setting a custom callback file, the callback will be enabled automatically.
+You can integrate your code in the `clip_application.py` file. This file includes a user-defined `app_callback` function that is called after the CLIP inference and before the display. You can use it to add your logic to the app. The `app_callback_class` will be passed to the callback function and can be used to access the app's data.
 
 ### Online Text Embeddings
 
@@ -146,18 +121,23 @@ By default, the application will use `clip_app/user_callback.py` as the callback
 - You can save the embeddings to a JSON file and load them on the next run. This will not require running the text embeddings on the host.
 - If you need to prepare text embeddings on a weak machine, you can use the `text_image_matcher` tool. This tool will run the text embeddings on the host and save them to a JSON file without running the full pipeline. This tool assumes the first text is a 'positive' prompt and the rest are negative.
 
+#### Arguments
 ```bash
 text_image_matcher -h
-usage: text_image_matcher [-h] [--output OUTPUT] [--interactive] [--image-path IMAGE_PATH] [--texts-list TEXTS_LIST [TEXTS_LIST ...]]
+usage: text_image_matcher [-h] [--output OUTPUT] [--interactive] [--image-path IMAGE_PATH] [--texts-list TEXTS_LIST [TEXTS_LIST ...]] [--texts-json TEXTS_JSON]
 
 options:
   -h, --help            show this help message and exit
-  --output OUTPUT       Output file name (default: text_embeddings.json).
-  --interactive         Input text from an interactive shell.
+  --output OUTPUT       output file name default=text_embeddings.json
+  --interactive         input text from interactive shell
   --image-path IMAGE_PATH
-                        Optional, path to an image file to match. Note: image embeddings are not running on Hailo here.
+                        Optional, path to image file to match. Note image embeddings are not running on Hailo here.
   --texts-list TEXTS_LIST [TEXTS_LIST ...]
-                        A list of texts to add to the matcher; the first one will be the searched text, and the others will be considered negative prompts. Example: --texts-list "cat" "dog" "yellow car".
+                        A list of texts to add to the matcher, the first one will be the searched text, the others will be considered negative prompts. Example: --texts-list "cat" "dog" "yellow car"
+  --texts-json TEXTS_JSON
+                        A json of texts to add to the matcher, the json will include 2 keys negative and positive, the values are going to be lists of texts.
+                        Example: resources/texts_json_example.json
+
 ```
 
 ## CPP Code Compilation
@@ -185,3 +165,23 @@ Or upgrade setuptools to the latest version:
 ```bash
 pip install --upgrade setuptools
 ```
+## Hailo Apps Infra
+The Hailo Apps Infra repository containes the infrastructure of hailo applications and pipelines.
+You can find it here  see the [Hailo Apps Infra](https://github.com/giladnah/hailo-apps-infra).
+
+## Contributing
+
+We welcome contributions from the community. You can contribute by:
+1. Contribute to our [Community Projects](community_projects/community_projects.md).
+2. Reporting issues and bugs.
+3. Suggesting new features or improvements.
+4. Joining the discussion on the [Hailo Community Forum](https://community.hailo.ai/).
+
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Disclaimer
+
+This code example is provided by Hailo solely on an “AS IS” basis and “with all faults.” No responsibility or liability is accepted or shall be imposed upon Hailo regarding the accuracy, merchantability, completeness, or suitability of the code example. Hailo shall not have any liability or responsibility for errors or omissions in, or any business decisions made by you in reliance on this code example or any part of it. If an error occurs when running this example, please open a ticket in the "Issues" tab.
