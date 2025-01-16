@@ -1,3 +1,4 @@
+![](resources/github_clip_based_classification.png)
 # CLIP Zero Shot Inference Application
 
 This is an example application to run a CLIP inference on a video in real-time. The image embeddings are accelerated by the Hailo-8/8L AI processor, while the text embeddings run on the host. Text embeddings are sparse and should be calculated only once per text. If they do not need to be updated in real-time, they can be saved to a JSON file and loaded on the next run.
