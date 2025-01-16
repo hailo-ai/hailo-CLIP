@@ -6,6 +6,7 @@ import signal
 import importlib.util
 from functools import partial
 import gi
+import threading
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gst', '1.0')
 from gi.repository import Gtk, Gst, GLib
@@ -13,56 +14,48 @@ from clip_app.logger_setup import setup_logger, set_log_level
 from clip_app.clip_pipeline import get_pipeline
 from clip_app.text_image_matcher import text_image_matcher
 from clip_app import gui
+from hailo_apps_infra.gstreamer_app import picamera_thread
+from hailo_apps_infra.gstreamer_helper_pipelines import get_source_type
 
 # add logging
 logger = setup_logger()
 set_log_level(logger, logging.INFO)
 
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Hailo online CLIP app")
-    parser.add_argument("--input", "-i", type=str, default="/dev/video0", help="URI of the input stream. Default is /dev/video0. Use '--input demo' to use the demo video.")
-    parser.add_argument("--detector", "-d", type=str, choices=["person", "face", "none"], default="none", help="Which detection pipeline to use.")
-    parser.add_argument("--json-path", type=str, default=None, help="Path to JSON file to load and save embeddings. If not set, embeddings.json will be used.")
-    parser.add_argument("--disable-sync", action="store_true",help="Disables display sink sync, will run as fast as possible. Relevant when using file source.")
-    parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file.")
-    parser.add_argument("--detection-threshold", type=float, default=0.5, help="Detection threshold.")
-    parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink.")
-    parser.add_argument("--enable-callback", action="store_true", help="Enables the use of the callback function.")
-    parser.add_argument("--callback-path", type=str, default=None, help="Path to the custom user callback file.")
-    parser.add_argument("--disable-runtime-prompts", action="store_true", help="When set, app will not support runtime prompts. Default is False.")
+class ClipApp():
+    def __init__(self, user_data, app_callback):
+        self.args = self.parse_arguments().parse_args()
+        
+        self.app_callback = app_callback
+        set_log_level(logger, logging.INFO)
 
-    return parser.parse_args()
+        self.user_data = user_data
+        self.win = AppWindow(self.args, self.user_data, self.app_callback)
+    def run(self):
+        self.win.connect("destroy", self.on_destroy)
+        self.win.show_all()
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        Gtk.main()
+        
+    def on_destroy(self, window):
+        logger.info("Destroying window...")
+        window.quit_button_clicked(None)
+        
+    def parse_arguments(self):
+        parser = argparse.ArgumentParser(description="Hailo online CLIP app")
+        parser.add_argument("--input", "-i", type=str, default="/dev/video0", help="Input source. Can be a file, USB (webcam), RPi camera (CSI camera module). \
+        For RPi camera use '-i rpi' \
+        For demo video use '--input demo'. \
+        Default is /dev/video0.")
+        parser.add_argument("--detector", "-d", type=str, choices=["person", "face", "none"], default="none", help="Which detection pipeline to use.")
+        parser.add_argument("--json-path", type=str, default=None, help="Path to JSON file to load and save embeddings. If not set, embeddings.json will be used.")
+        parser.add_argument("--disable-sync", action="store_true",help="Disables display sink sync, will run as fast as possible. Relevant when using file source.")
+        parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file.")
+        parser.add_argument("--detection-threshold", type=float, default=0.5, help="Detection threshold.")
+        parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink.")
+        parser.add_argument("--disable-runtime-prompts", action="store_true", help="When set, app will not support runtime prompts. Default is False.")
 
-def load_custom_callback(callback_path=None):
-    if callback_path:
-        spec = importlib.util.spec_from_file_location("custom_callback", callback_path)
-        custom_callback = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(custom_callback)
-    else:
-        import clip_app.user_callback as custom_callback
-    return custom_callback
-
-def on_destroy(window):
-    logger.info("Destroying window...")
-    window.quit_button_clicked(None)
-
-
-def main():
-    args = parse_arguments()
-    custom_callback_module = load_custom_callback(args.callback_path)
-    app_callback = custom_callback_module.app_callback
-    app_callback_class = custom_callback_module.app_callback_class
-    
-    logger = setup_logger()
-    set_log_level(logger, logging.INFO)
-    
-    user_data = app_callback_class()
-    win = AppWindow(args, user_data, app_callback)
-    win.connect("destroy", on_destroy)
-    win.show_all()
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    Gtk.main()
+        return parser
 
 class AppWindow(Gtk.Window):
     # Add GUI functions to the AppWindow class
@@ -83,7 +76,7 @@ class AppWindow(Gtk.Window):
 
     # Add the get_pipeline function to the AppWindow class
     get_pipeline = get_pipeline
-    
+
 
     def __init__(self, args, user_data, app_callback):
         Gtk.Window.__init__(self, title="Clip App")
@@ -101,41 +94,43 @@ class AppWindow(Gtk.Window):
             logger.error("TAPPAS_POST_PROC_DIR environment variable is not set. Please set it by sourcing setup_env.sh")
             sys.exit(1)
 
-        self.dump_dot = args.dump_dot
-        self.sync_req = 'false' if args.disable_sync else 'true'
-        self.show_fps = args.show_fps
-        self.enable_callback = args.enable_callback or args.callback_path is not None
-        self.json_file = os.path.join(self.current_path, "embeddings.json") if args.json_path is None else args.json_path
-        if args.input == "demo":
-            self.input_uri = os.path.join(self.current_path, "resources", "clip_example.mp4")
-            self.json_file = os.path.join(self.current_path, "example_embeddings.json") if args.json_path is None else args.json_path
+        # Create options menu
+        self.options_menu = args
+
+        self.dump_dot = self.options_menu.dump_dot
+        self.video_source = self.options_menu.input
+        self.source_type = get_source_type(self.video_source)
+        self.sync = "false" if (self.options_menu.disable_sync or self.source_type != "file") else "true"
+        self.show_fps = self.options_menu.show_fps
+        self.json_file = os.path.join(self.current_path, "embeddings.json") if self.options_menu.json_path is None else self.options_menu.json_path
+        if self.options_menu.input == "demo":
+            self.input = os.path.join(self.current_path, "resources", "clip_example.mp4")
+            self.json_file = os.path.join(self.current_path, "example_embeddings.json") if self.options_menu.json_path is None else self.options_menu.json_path
         else:
-            self.input_uri = args.input
-        self.detector = args.detector
+            self.input = self.options_menu.input
+        self.detector = self.options_menu.detector
         self.user_data = user_data
         self.app_callback = app_callback
         # get current path
         Gst.init(None)
         self.pipeline = self.create_pipeline()
+        if self.input == "rpi":
+            picam_thread = threading.Thread(target=picamera_thread, args=(self.pipeline, 1280, 720, 'RGB'))
+            picam_thread.start()
         bus = self.pipeline.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self.on_message)
 
-        # get xvimagesink element and disable qos
-        # xvimagesink is instantiated by fpsdisplaysink
-        hailo_display = self.pipeline.get_by_name("hailo_display")
-        xvimagesink = hailo_display.get_by_name("xvimagesink0")
-        xvimagesink.set_property("qos", False)
-
         # get text_image_matcher instance
         self.text_image_matcher = text_image_matcher
-        self.text_image_matcher.set_threshold(args.detection_threshold)
+        self.text_image_matcher.set_threshold(self.options_menu.detection_threshold)
 
         # build UI
-        self.build_ui(args)
+        self.max_entries = 6
+        self.build_ui(self.options_menu)
 
         # set runtime
-        if args.disable_runtime_prompts:
+        if self.options_menu.disable_runtime_prompts:
             logger.info("No text embedding runtime selected, adding new text is disabled. Loading %s", self.json_file)
             self.disable_text_boxes()
             self.on_load_button_clicked(None)
@@ -146,14 +141,13 @@ class AppWindow(Gtk.Window):
             logger.info("Using %s for text embedding", self.text_image_matcher.model_runtime)
             self.on_load_button_clicked(None)
 
-        # Connect pad probe to the identity element
-        if self.enable_callback:
-            identity = self.pipeline.get_by_name("identity_callback")
-            if identity is None:
-                logger.warning("identity_callback element not found, add <identity name=identity_callback> in your pipeline where you want the callback to be called.")
-            else:
-                identity_pad = identity.get_static_pad("src")
-                identity_pad.add_probe(Gst.PadProbeType.BUFFER, partial(self.app_callback, self), self.user_data)
+
+        identity = self.pipeline.get_by_name("identity_callback")
+        if identity is None:
+            logger.warning("identity_callback element not found, add <identity name=identity_callback> in your pipeline where you want the callback to be called.")
+        else:
+            identity_pad = identity.get_static_pad("src")
+            identity_pad.add_probe(Gst.PadProbeType.BUFFER, partial(self.app_callback, self), self.user_data)
         # start the pipeline
         self.pipeline.set_state(Gst.State.PLAYING)
 
@@ -225,4 +219,4 @@ class AppWindow(Gtk.Window):
         return pipeline
 
 if __name__ == "__main__":
-    main()
+    run()

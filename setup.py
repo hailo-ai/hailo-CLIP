@@ -16,8 +16,23 @@ def check_hailo_package():
         sys.exit(1)
 
 def read_requirements():
+    """Reads requirements from requirements.txt, converting any 'git+https://' lines to PEP 508 syntax."""
     with open("requirements.txt", "r") as f:
-        return f.read().splitlines()
+        lines = f.read().splitlines()
+
+    new_lines = []
+    for line in lines:
+        # If the line starts with git+https, convert it to PEP 508 form: <pkgname> @ git+https://...
+        if line.startswith("git+https://"):
+            # Choose a name that matches or approximates the actual package
+            # e.g., "hailo-apps-infra1" if that’s how you want to import it
+            package_name = "hailo-apps-infra"
+            pep_508_line = f"{package_name} @ {line}"
+            new_lines.append(pep_508_line)
+        else:
+            new_lines.append(line)
+
+    return new_lines
 
 def run_shell_command(command, error_message):
     logger.info(f"Running command: {command}")
@@ -39,7 +54,7 @@ def main():
 
     setup(
         name='clip-app',
-        version='0.4',
+        version='0.5',
         author='Gilad Nahor',
         author_email='giladn@hailo.ai',
         description='Real time CLIP zero shot classification and detection',
@@ -49,7 +64,6 @@ def main():
         install_requires=requirements,
         entry_points={
             'console_scripts': [
-                'clip_app=clip_app.clip_app:main',
                 'text_image_matcher=clip_app.text_image_matcher:main',
             ],
         },

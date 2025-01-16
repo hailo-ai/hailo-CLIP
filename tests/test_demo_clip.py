@@ -91,7 +91,7 @@ def test_demo_clip():
 
     with open(log_file_path, "w") as log_file:
         process = subprocess.Popen(
-            ['clip_app', '--input', 'demo', '--disable-runtime-prompts'],
+            ['python', 'clip_application.py', '--input', 'demo', '--disable-runtime-prompts'],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         try:
@@ -118,7 +118,7 @@ def test_all_detectors():
         log_file_path = os.path.join(LOG_DIR, f"clip_{detector}_test.log")
         with open(log_file_path, "w") as log_file:
             process = subprocess.Popen(
-                ['clip_app', '--input', 'demo', '--detector', detector, '--disable-runtime-prompts'],
+                ['python', 'clip_application.py', '--input', 'demo', '--detector', detector, '--disable-runtime-prompts'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             try:
@@ -150,7 +150,7 @@ def test_usb_camera():
 
         with open(log_file_path, "w") as log_file:
             process = subprocess.Popen(
-                ['clip_app', '--input', camera, '--disable-runtime-prompts'],
+                ['python', 'clip_application.py', '--input', camera, '--disable-runtime-prompts'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             try:

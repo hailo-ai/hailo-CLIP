@@ -12,7 +12,7 @@ from gi.repository import Gst, GLib
 
 # Import clip app modules
 from clip_app.text_image_matcher import TextImageMatcher, text_image_matcher
-import clip_app.user_callback as callback_module
+import clip_application as callback_module
 
 class TestSanityCheck:
     """Basic sanity checks for the CLIP application."""
