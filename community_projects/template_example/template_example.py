@@ -2,8 +2,11 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 import hailo
+from clip_app.clip_app import ClipApp
+from hailo_apps_infra.gstreamer_app import app_callback_class
 
-class app_callback_class:
+
+class user_app_callback_class(app_callback_class):
     def __init__(self):
         self.frame_count = 0
         self.use_frame = False
@@ -16,7 +19,7 @@ class app_callback_class:
         return self.frame_count
 
 
-def app_callback(self, pad, info, user_data):
+def user_app_callback(self, pad, info, user_data):
     """
     This is the callback function that will be called when data is available
     from the pipeline.
@@ -60,3 +63,11 @@ def app_callback(self, pad, info, user_data):
     if string_to_print:
         print(string_to_print)
     return Gst.PadProbeReturn.OK
+
+def main():
+    user_data = user_app_callback_class()
+    clip = ClipApp(user_data, user_app_callback)
+    clip.run()
+    
+if __name__ == "__main__":
+    main()

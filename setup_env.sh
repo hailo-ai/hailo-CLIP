@@ -24,26 +24,26 @@ is_sourced() {
 if is_sourced; then
     echo "Setting up the environment..."
 
-    # Check if we are working with hailo_tappas or hailo-tappas-core
-    if pkg-config --exists hailo_tappas; then
-        TAPPAS_CORE=0
-        REQUIRED_VERSION=("${TAPPAS_REQUIRED_VERSION[@]}")
-        echo "Setting up the environment for hailo_tappas..."
-        TAPPAS_VERSION=$(pkg-config --modversion hailo_tappas)
-        TAPPAS_WORKSPACE=$(pkg-config --variable=tappas_workspace hailo_tappas)
-	export TAPPAS_WORKSPACE
-        echo "TAPPAS_WORKSPACE set to $TAPPAS_WORKSPACE"
-	if [[ "$TAPPAS_WORKSPACE" == "/local/workspace/tappas" ]]; then
-	    VENV_NAME="DOCKER"
-        else
-            VENV_NAME=$TAPPAS_VENV_NAME
-        fi
-    else
+    # Check if we are working with hailo-tappas-core or hailo_tappas
+    if pkg-config --exists hailo-tappas-core; then
         TAPPAS_CORE=1
         VENV_NAME=$CORE_VENV_NAME
         REQUIRED_VERSION=("${CORE_REQUIRED_VERSION[@]}")
         echo "Setting up the environment for hailo-tappas-core..."
         TAPPAS_VERSION=$(pkg-config --modversion hailo-tappas-core)
+    else
+        TAPPAS_CORE=0
+        REQUIRED_VERSION=("${TAPPAS_REQUIRED_VERSION[@]}")
+        echo "Setting up the environment for hailo_tappas..."
+        TAPPAS_VERSION=$(pkg-config --modversion hailo_tappas)
+        TAPPAS_WORKSPACE=$(pkg-config --variable=tappas_workspace hailo_tappas)
+        export TAPPAS_WORKSPACE
+        echo "TAPPAS_WORKSPACE set to $TAPPAS_WORKSPACE"
+        if [[ "$TAPPAS_WORKSPACE" == "/local/workspace/tappas" ]]; then
+            VENV_NAME="DOCKER"
+        else
+            VENV_NAME=$TAPPAS_VENV_NAME
+        fi
     fi
 
     # Check if TAPPAS_VERSION is in REQUIRED_VERSION

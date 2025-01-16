@@ -64,7 +64,6 @@ def main():
         install_requires=requirements,
         entry_points={
             'console_scripts': [
-                'clip_app=clip_app.clip_app:main',
                 'text_image_matcher=clip_app.text_image_matcher:main',
             ],
         },

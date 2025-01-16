@@ -121,6 +121,8 @@ def add_text_boxes(self, N=6):
 
 
 def update_text_boxes(self):
+    if len(self.text_image_matcher.entries) > self.max_entries:
+        return
     for i, entry in enumerate(self.text_image_matcher.entries):
         self.text_boxes[i].set_text(entry.text)
         self.negative_check_buttons[i].set_active(entry.negative)
@@ -176,6 +178,8 @@ def on_load_button_clicked(self, widget):
     """Callback function for the load button."""
     logger.info("Loading embeddings from %s\n", self.json_file)
     self.text_image_matcher.load_embeddings(self.json_file)
+    if len(self.text_image_matcher.entries) > self.max_entries:
+        print(f"Load more then {self.max_entries} embeddings.\nSkipping updating text boxes.")
     self.update_text_boxes()
     self.slider.set_value(self.text_image_matcher.threshold)
     self.update_text_prefix(self.text_image_matcher.text_prefix)
@@ -187,6 +191,8 @@ def on_save_button_clicked(self, widget):
 
 def update_progress_bars(self):
     """Updates the progress bars based on the current probability values."""
+    if len(self.text_image_matcher.entries) > self.max_entries:
+        return
     for i, entry in enumerate(self.text_image_matcher.entries):
         if entry.text != "":
             self.probability_progress_bars[i].set_fraction(entry.tracked_probability)

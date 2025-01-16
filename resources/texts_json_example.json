@@ -1,0 +1,11 @@
+{
+    "negative": [
+        "person"
+    ],
+    "positive": [
+        "keyboard",
+        "mouse",
+        "cat",
+        "dog"
+    ]
+}
