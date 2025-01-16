@@ -9,6 +9,10 @@ import logging
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
+import json
+from pathlib import Path
+import numpy as np
+
 
 # Add path for clip app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -165,35 +169,58 @@ def test_usb_camera():
             assert "Error" not in stderr.decode(), f"Error occurred with USB camera: {stderr.decode()}"
             log_file.write("USB camera test completed successfully.\n")
 
-#### this is the original code for the run of clip with rpi camera , need to fix rpi input 
-# @pytest.mark.camera
-# def test_rpi_camera():
-#     """Test CLIP application with RPi camera."""
-#     if not check_rpi_camera_available():
-#         pytest.skip("RPi camera not available")
+@pytest.mark.camera
+def test_rpi_camera():
+    """Test CLIP application with RPi camera."""
+    if not check_rpi_camera_available():
+        pytest.skip("RPi camera not available")
 
-#     log_file_path = os.path.join(LOG_DIR, "clip_rpi_camera_test.log")
+    log_file_path = os.path.join(LOG_DIR, "clip_rpi_camera_test.log")
 
-#     with open(log_file_path, "w") as log_file:
-#         process = subprocess.Popen(
-#             ['python3', '-m', 'clip_app.clip_app', '--input', 'rpi', '--disable-runtime-prompts'],
-#             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    with open(log_file_path, "w") as log_file:
+        process = subprocess.Popen(
+            ['python3', '-m', 'clip_app.clip_app', '--input', 'rpi', '--disable-runtime-prompts'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-#         try:
-#             time.sleep(TEST_RUN_TIME)
-#             process.send_signal(signal.SIGTERM)
-#             process.wait(timeout=5)
-#         except subprocess.TimeoutExpired:
-#             process.kill()
-#             pytest.fail("RPi camera test could not be terminated")
+        try:
+            time.sleep(TEST_RUN_TIME)
+            process.send_signal(signal.SIGTERM)
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            pytest.fail("RPi camera test could not be terminated")
 
-#         stdout, stderr = process.communicate()
-#         log_file.write(f"RPi camera stdout:\n{stdout.decode()}\n")
-#         log_file.write(f"RPi camera stderr:\n{stderr.decode()}\n")
+        stdout, stderr = process.communicate()
+        log_file.write(f"RPi camera stdout:\n{stdout.decode()}\n")
+        log_file.write(f"RPi camera stderr:\n{stderr.decode()}\n")
 
-#         assert "Traceback" not in stderr.decode(), f"Exception occurred with RPi camera: {stderr.decode()}"
-#         assert "Error" not in stderr.decode(), f"Error occurred with RPi camera: {stderr.decode()}"
-#         log_file.write("RPi camera test completed successfully.\n")
+        assert "Traceback" not in stderr.decode(), f"Exception occurred with RPi camera: {stderr.decode()}"
+        assert "Error" not in stderr.decode(), f"Error occurred with RPi camera: {stderr.decode()}"
+        log_file.write("RPi camera test completed successfully.\n")
+
+class TestRuntimePrompts:
+    """Tests for runtime prompts functionality."""
+
+    def test_runtime_prompts_enabled(self):
+        """Test with runtime prompts enabled (default)."""
+        process = subprocess.Popen(
+            ['python3', '-m', 'clip_app.clip_app', '--input', 'demo'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True)
+        
+        try:
+            time.sleep(TEST_RUN_TIME)
+            process.send_signal(signal.SIGTERM)
+            process.wait(timeout=5)
+            stdout, stderr = process.communicate()
+            
+            if stderr and ("Error:" in stderr or "Traceback" in stderr):
+                pytest.fail(f"Runtime prompts test failed with error:\n{stderr}")
+                
+            assert process.returncode in [0, -15], f"Unexpected return code {process.returncode}"
+        finally:
+            if process.poll() is None:
+                process.kill()
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])

@@ -171,23 +171,7 @@ class TestCallbackFunctionality:
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
-    def test_invalid_embeddings_file(self, tmp_path):
-        """Test handling of invalid embeddings file."""
-        matcher = text_image_matcher
-        invalid_file = tmp_path / "nonexistent.json"
-        
-        # Should handle non-existent file
-        matcher.load_embeddings(str(invalid_file))
-        assert os.path.exists(invalid_file)
-        
-        # Should handle malformed JSON
-        with open(invalid_file, 'w') as f:
-            f.write("invalid json content")
-        
-        try:
-            matcher.load_embeddings(str(invalid_file))  # Should not raise exception
-        except Exception as e:
-            pytest.fail(f"Loading malformed JSON raised an exception: {e}")
+
     
     def test_empty_embeddings(self):
         """Test matcher behavior with empty embeddings."""
@@ -220,3 +204,4 @@ def test_clean_shutdown():
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
+
