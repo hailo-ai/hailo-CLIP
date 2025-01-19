@@ -2,4 +2,5 @@ numpy<2.0.0
 torch>=1.9.0
 torchvision>=0.10.0
 openai-clip
-git+https://github.com/giladnah/hailo-apps-infra.git
+Pillow
+git+https://github.com/hailo-ai/hailo-apps-infra.git

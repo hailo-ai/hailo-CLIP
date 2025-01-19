@@ -1,102 +1,56 @@
 #!/bin/bash
 
-# Function to check command status
-check_status() {
-    if [ $? -ne 0 ]; then
-        echo "Error: $1"
-        exit 1
-    fi
-}
+set -e  # Exit immediately if a command exits with a non-zero status
 
-# Step 1: Ensure the environment is set up by sourcing setup_env.sh
+# Source environment variables and activate virtual environment
+echo "Sourcing environment variables and activating virtual environment..."
 source setup_env.sh
-check_status "Failed to set up environment. Make sure setup_env.sh is correct."
 
-echo "Environment setup completed successfully."
-
-# Step 2: Install required system packages
-echo "Installing required system packages..."
-sudo apt-get update
+# Install additional system dependencies (if needed)
+echo "Installing additional system dependencies..."
 sudo apt-get -y install libblas-dev nlohmann-json3-dev
-check_status "Failed to install system packages"
 
-# Step 3: Install Python dependencies from requirements.txt
-echo "Installing Python dependencies from requirements.txt..."
-if [ -f "requirements.txt" ]; then
-    python3 -m pip install -r requirements.txt
-    check_status "Failed to install Python dependencies"
-else
-    echo "requirements.txt not found!"
-    exit 1
+# Initialize variables
+DOWNLOAD_RESOURCES_FLAG=""
+PYHAILORT_WHL=""
+PYTAPPAS_WHL=""
+INSTALL_TEST_REQUIREMENTS=false
+
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --pyhailort) PYHAILORT_WHL="$2"; shift ;;
+        --pytappas) PYTAPPAS_WHL="$2"; shift ;;
+        --test) INSTALL_TEST_REQUIREMENTS=true ;;
+        --all) DOWNLOAD_RESOURCES_FLAG="--all" ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# Install specified Python wheels
+if [[ -n "$PYHAILORT_WHL" ]]; then
+    echo "Installing pyhailort wheel: $PYHAILORT_WHL"
+    pip install "$PYHAILORT_WHL"
 fi
 
-# Step 4: Install test requirements
-echo "Installing test requirements..."
-if [ -f "tests/test_resources/requirements.txt" ]; then
-    python3 -m pip install -r tests/test_resources/requirements.txt
-    check_status "Failed to install test requirements"
-else
-    # Create tests/test_resources directory if it doesn't exist
-    mkdir -p tests/test_resources
-    # Create requirements.txt file with test dependencies
-    cat > tests/test_resources/requirements.txt << EOL
-pytest>=7.0.0
-pytest-timeout>=2.1.0
-pytest-cov>=4.1.0
-pytest-xdist>=3.3.1
-EOL
-    python3 -m pip install -r tests/test_resources/requirements.txt
-    check_status "Failed to install test requirements"
+if [[ -n "$PYTAPPAS_WHL" ]]; then
+    echo "Installing pytappas wheel: $PYTAPPAS_WHL"
+    pip install "$PYTAPPAS_WHL"
 fi
 
-# Step 5: Install the package using setup.py in editable mode
+# Install test requirements if needed
+if [[ "$INSTALL_TEST_REQUIREMENTS" == true ]]; then
+    echo "Installing test requirements..."
+    python3 -m pip install -r tests/test_resources/requirements.txt
+fi
+
+# Install the package using setup.py in editable mode
 echo "Installing the package using setup.py in editable mode..."
 python3 -m pip install -v -e .
-check_status "Failed to install the package via setup.py"
 
-# Step 6: Download required resources (if applicable)
-echo "Downloading required resources..."
-if [ -f "./download_resources.sh" ]; then
-    ./download_resources.sh
-    check_status "Failed to download resources"
-else
-    echo "download_resources.sh not found!"
-    exit 1
-fi
+# Download resources needed for the pipelines
+echo "Downloading resources needed for the pipelines..."
+./download_resources.sh $DOWNLOAD_RESOURCES_FLAG
 
-# Step 7: Compile the post-process code using compile_postprocess.sh
-echo "Compiling the post-process code..."
-if [ -f "./compile_postprocess.sh" ]; then
-    ./compile_postprocess.sh
-    check_status "Post-process compilation failed"
-else
-    echo "compile_postprocess.sh not found!"
-    exit 1
-fi
-
-# # Step 8: Run basic tests to verify installation
-# echo "Running basic tests to verify installation..."
-# if [ -d "tests" ]; then
-#     python -m pytest tests/test_clip_app.py -v
-#     check_status "Some tests failed during installation verification"
-# fi
-
-# echo "Installation completed successfully!"
-
-# # Print verification information
-# echo "Verifying installation..."
-# echo "Python version: $(python3 --version)"
-# echo "Installed packages:"
-# pip list
-
-# # Create a simple test script
-# echo "Creating test script..."
-# cat > test_installation.sh << 'EOL'
-# #!/bin/bash
-# source setup_env.sh
-# echo "Testing CLIP application installation..."
-# python -m pytest tests/test_clip_app.py -v
-# EOL
-# chmod +x test_installation.sh
-
-# echo "You can verify the installation by running: ./test_installation.sh"
+echo "Installation completed successfully."

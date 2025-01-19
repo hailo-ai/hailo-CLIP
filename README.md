@@ -168,7 +168,7 @@ pip install --upgrade setuptools
 ```
 ## Hailo Apps Infra
 The Hailo Apps Infra repository containes the infrastructure of hailo applications and pipelines.
-You can find it here  see the [Hailo Apps Infra](https://github.com/giladnah/hailo-apps-infra).
+You can find it here  see the [Hailo Apps Infra](https://github.com/hailo-ai/hailo-apps-infra).
 
 ## Contributing
 
