@@ -73,7 +73,7 @@ You can check which USB webcam device is connected by running the following comm
 ```bash
 get-usb-camera
 ```
-
+If you see the camera feed, the device is supported. If not, try `/dev/video2`, `/dev/video4`, etc. (devices are usually mapped to an even number).
 Once you identify your camera device, you can run the application as follows:
 ```bash
 python clip_application.py --input /dev/video0
@@ -168,7 +168,7 @@ pip install --upgrade setuptools
 ```
 ## Hailo Apps Infra
 The Hailo Apps Infra repository containes the infrastructure of hailo applications and pipelines.
-You can find it here  see the [Hailo Apps Infra](https://github.com/giladnah/hailo-apps-infra).
+You can find it here  see the [Hailo Apps Infra](https://github.com/hailo-ai/hailo-apps-infra).
 
 ## Contributing
 

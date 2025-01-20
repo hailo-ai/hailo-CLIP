@@ -25,7 +25,6 @@ def read_requirements():
         # If the line starts with git+https, convert it to PEP 508 form: <pkgname> @ git+https://...
         if line.startswith("git+https://"):
             # Choose a name that matches or approximates the actual package
-            # e.g., "hailo-apps-infra1" if that’s how you want to import it
             package_name = "hailo-apps-infra"
             pep_508_line = f"{package_name} @ {line}"
             new_lines.append(pep_508_line)
@@ -54,12 +53,12 @@ def main():
 
     setup(
         name='clip-app',
-        version='0.5',
-        author='Gilad Nahor',
-        author_email='giladn@hailo.ai',
+        version='0.6',
         description='Real time CLIP zero shot classification and detection',
         long_description=open('README.md').read(),
         long_description_content_type='text/markdown',
+        author='Hailo',
+        author_email='support@hailo.ai',
         packages=find_packages(),
         install_requires=requirements,
         entry_points={

@@ -54,6 +54,6 @@ The system can be utilized in various public settings, such as shopping malls, s
 
 ## Running Example
 ```bash
-python ad_genie.py -d person -i /dev/video0 --json-path resources/data_embdedding.json --enable-callback
+python ad_genie.py -d person -i /dev/video0 --json-path resources/data_embdedding.json
 ```
 - Check Your USB camera port using get-usb-camera
