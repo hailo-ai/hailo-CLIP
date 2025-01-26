@@ -179,7 +179,7 @@ def test_rpi_camera():
 
     with open(log_file_path, "w") as log_file:
         process = subprocess.Popen(
-            ['python3', '-m', 'clip_app.clip_app', '--input', 'rpi', '--disable-runtime-prompts'],
+            ['python', 'clip_application.py', '--input', 'rpi', '--disable-runtime-prompts'],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         try:
@@ -204,7 +204,7 @@ class TestRuntimePrompts:
     def test_runtime_prompts_enabled(self):
         """Test with runtime prompts enabled (default)."""
         process = subprocess.Popen(
-            ['python3', '-m', 'clip_app.clip_app', '--input', 'demo'],
+            ['python', 'clip_application.py', '--input', 'demo'],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True)
         

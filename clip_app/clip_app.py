@@ -218,5 +218,7 @@ class AppWindow(Gtk.Window):
             logger.error("An error occurred while parsing the pipeline: %s", e)
         return pipeline
 
-if __name__ == "__main__":
-    run()
+# if __name__ == "__main__":
+#     user_data = app_callback_class()
+#     clip = ClipApp(user_data, app_callback)
+#     clip.run()
