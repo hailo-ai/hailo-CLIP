@@ -2,7 +2,7 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 import hailo
-from clip_app.clip_app import ClipApp
+from clip_app.clip_app_pipeline import ClipApp
 
 class app_callback_class:
     def __init__(self):
