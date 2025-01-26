@@ -13,6 +13,7 @@ from gi.repository import Gtk, Gst, GLib
 from clip_app.logger_setup import setup_logger, set_log_level
 from clip_app.clip_pipeline import get_pipeline
 from clip_app.text_image_matcher import text_image_matcher
+from clip_app.clip_callback import app_callback_class, dummy_callback
 from clip_app import gui
 from hailo_apps_infra.gstreamer_app import picamera_thread
 from hailo_apps_infra.gstreamer_helper_pipelines import get_source_type
@@ -218,7 +219,8 @@ class AppWindow(Gtk.Window):
             logger.error("An error occurred while parsing the pipeline: %s", e)
         return pipeline
 
-# if __name__ == "__main__":
-#     user_data = app_callback_class()
-#     clip = ClipApp(user_data, app_callback)
-#     clip.run()
+
+if __name__ == "__main__":
+    user_data = app_callback_class()
+    clip = ClipApp(user_data, dummy_callback)
+    clip.run()
