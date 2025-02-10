@@ -101,7 +101,7 @@ def download_image_with_retry(url, save_path, retries):
  
 
 def parse_arguments():
-        """
+    """
     Parses command-line arguments for the script.
 
     Returns:
