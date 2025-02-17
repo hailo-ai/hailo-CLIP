@@ -54,6 +54,6 @@ For a visual demonstration of the BAIby Monitor project, watch this video:
 
 ## Usage
 
-- **Access the Dashboard**: Once the application is running, navigate to `http://localhost:8000` in your web browser to access the monitoring dashboard.
+- **Access the Dashboard**: Once the application is running, navigate to `http://localhost:5001` in your web browser to access the monitoring dashboard.
 - **Configure Settings**: Use the dashboard to adjust sensitivity levels, notification preferences, and other settings.
 - **Monitor Alerts**: Receive real-time notifications on the dashboard and connected devices when the system detects the baby crying or unusual activity.
