@@ -1,3 +1,32 @@
+# Community Projects
+
+**Welcome to our Community Projects**! 🎉  
+Here, you’ll find all our awesome community examples, based on **Hailo** and **Raspberry Pi** and we’d love for you to contribute too! 🚀  
+Check out how you can get involved and share your own creations here: 
+[How to Add a Community Project](community_projects.md#how-to-add-a-community-project)
+
+## Ad Genie
+A system that personalizes ads by matching outfits to individual styles in real time.
+
+[![Watch the demo on YouTube](https://img.youtube.com/vi/_PN4cdiFKmw/0.jpg)](<https://youtu.be/_PN4cdiFKmw>)
+
+For more information see [Ad Genie Example Documentation.](ad_genie/README.md)
+
+
+## BAIby Monitor
+
+A smart baby monitor detecting cries and activity with real-time alerts.
+
+[![VIDEO](https://img.youtube.com/vi/sXgL5g_A-u0/0.jpg)](https://youtu.be/sXgL5g_A-u0)
+
+For more information see [BAIby Monitor Example Documentation.](baiby_monitor/README.md)
+
+
+## More Projects
+
+You can explore more community projects in our hailo-rpi5-examples repository -   
+[hailo-rpi5-examples community projects](https://github.com/hailo-ai/hailo-rpi5-examples/blob/main/community_projects/community_projects.md)
+
 # How to Add a Community Project
 
 This guide will walk you through creating and structuring your community project in the repository.

@@ -1,0 +1,18 @@
+[BOT]
+;if not connecting to existing Bot, go to 
+; https://web.telegram.org/k/#@BotFather
+; type /start
+; and then /setname 
+; and /newbot
+; you will get your bot token
+token = abcd
+
+[IDs]
+;list of chat_ID, can be obtained by joining the telegram bot @bAIbyMonbot
+;from the URL https://web.telegram.org/k/#@bAIbyMonbot
+;and pressing /start
+;after that you can run 
+;python telegra.py --get-chat-ids and get a list of all IDs, add your chat id to 
+;this list
+list = 1234 
+
