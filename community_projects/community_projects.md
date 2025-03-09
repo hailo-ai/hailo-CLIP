@@ -1,14 +1,14 @@
 # Community Projects
 
-**Welcome to our Community Projects**! 🎉  
-Here, you’ll find all our awesome community examples, based on **Hailo** and **Raspberry Pi** and we’d love for you to contribute too! 🚀  
-Check out how you can get involved and share your own creations here: 
+**Welcome to our Community Projects**! 🎉
+Here, you’ll find all our awesome community examples, based on **Hailo** and **Raspberry Pi** and we’d love for you to contribute too! 🚀
+Check out how you can get involved and share your own creations here:
 [How to Add a Community Project](community_projects.md#how-to-add-a-community-project)
 
 ## Ad Genie
 A system that personalizes ads by matching outfits to individual styles in real time.
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/_PN4cdiFKmw/0.jpg)](<https://youtu.be/_PN4cdiFKmw>)
+[![Watch the demo on YouTube](https://img.youtube.com/vi/0_v2V7lV514/0.jpg)](https://youtu.be/0_v2V7lV514)
 
 For more information see [Ad Genie Example Documentation.](ad_genie/README.md)
 
@@ -24,7 +24,7 @@ For more information see [BAIby Monitor Example Documentation.](baiby_monitor/RE
 
 ## More Projects
 
-You can explore more community projects in our hailo-rpi5-examples repository -   
+You can explore more community projects in our hailo-rpi5-examples repository -
 [hailo-rpi5-examples community projects](https://github.com/hailo-ai/hailo-rpi5-examples/blob/main/community_projects/community_projects.md)
 
 # How to Add a Community Project
