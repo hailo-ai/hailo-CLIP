@@ -3,7 +3,7 @@
 ![](resources/ad_genie.gif)
 
 # Watch our Youtube video
-### [![Watch our beautifully illustrated demo!](https://img.youtube.com/vi/_PN4cdiFKmw/0.jpg)](<https://youtu.be/_PN4cdiFKmw>)
+### [![Watch our beautifully illustrated demo!](https://img.youtube.com/vi/0_v2V7lV514/0.jpg)](<https://youtu.be/0_v2V7lV514>)
 
 ## Overview
 This project personalizes ads using the CLIP model.

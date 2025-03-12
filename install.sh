@@ -15,6 +15,7 @@ DOWNLOAD_RESOURCES_FLAG=""
 PYHAILORT_WHL=""
 PYTAPPAS_WHL=""
 INSTALL_TEST_REQUIREMENTS=false
+TAG="25.3.1"
 
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -23,6 +24,7 @@ while [[ "$#" -gt 0 ]]; do
         --pytappas) PYTAPPAS_WHL="$2"; shift ;;
         --test) INSTALL_TEST_REQUIREMENTS=true ;;
         --all) DOWNLOAD_RESOURCES_FLAG="--all" ;;
+        --tag) TAG="$2"; shift ;;   # New parameter to specify tag for Hailo Apps Infra
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -48,6 +50,10 @@ fi
 # Install the package using setup.py in editable mode
 echo "Installing the package using setup.py in editable mode..."
 python3 -m pip install -v -e .
+
+# Install Hailo Apps Infrastructure from specified tag/branch
+echo "Installing Hailo Apps Infrastructure from version: $TAG..."
+pip install "git+https://github.com/hailo-ai/hailo-apps-infra.git@$TAG"
 
 # Download resources needed for the pipelines
 echo "Downloading resources needed for the pipelines..."

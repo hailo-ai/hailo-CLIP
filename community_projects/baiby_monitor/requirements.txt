@@ -1,0 +1,4 @@
+playsound
+flask 
+requests
+config

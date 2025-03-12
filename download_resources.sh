@@ -8,15 +8,24 @@ mkdir -p "$RESOURCE_DIR"
 
 # Define download function with file existence check and retries
 download_model() {
-  file_name=$(basename "$1")
-  if [ ! -f "$RESOURCE_DIR/$file_name" ]; then
+  local url=$1
+  local file_name=$(basename "$url")
+
+  # Check if the file is for H8L and rename it accordingly
+  if [[ ( "$url" == *"hailo8l"* || "$url" == *"h8l_rpi"* ) && ( "$url" != *"barcode"* ) ]]; then
+    file_name="${file_name%.hef}_h8l.hef"
+  fi
+
+  local file_path="$RESOURCE_DIR/$file_name"
+
+  if [ ! -f "$file_path" ]; then
     echo "Downloading $file_name..."
-    wget --tries=3 --retry-connrefused --quiet --show-progress "$1" -P "$RESOURCE_DIR" || {
+    wget -q --show-progress "$url" -O "$file_path" || {
       echo "Failed to download $file_name after multiple attempts."
       exit 1
     }
   else
-    echo "File $file_name already exists. Skipping download."
+    echo "File $file_name already exists in $RESOURCE_DIR. Skipping download."
   fi
 }
 

@@ -9,7 +9,7 @@ import multiprocessing
 import hailo
 from PIL import Image, ImageDraw
 from hailo_apps_infra.gstreamer_app import app_callback_class
-from clip_app.clip_app import ClipApp
+from clip_app.clip_app_pipeline import ClipApp
 
 class user_app_callback_class(app_callback_class):
     """
